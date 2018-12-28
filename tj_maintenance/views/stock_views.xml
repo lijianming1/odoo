@@ -1,0 +1,152 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem
+            id="tj_menu_equipment_maintenance"
+            name="机台"
+            parent="maintenance.menu_equipment_form"
+            action="maintenance.hr_equipment_action"
+            groups="base.group_user"
+            sequence="0"/>
+
+
+    <record id="tj_equipment_parts_tree" model="ir.ui.view">
+        <field name="name">equipment.parts.tree</field>
+        <field name="model">equipment.parts</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+                <field name="maintenance_equipment_id"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="tj_equipment_parts_action" model="ir.actions.act_window">
+        <field name="name">设备部件</field>
+        <field name="res_model">equipment.parts</field>
+        <field name="view_mode">kanban,tree,form</field>
+        <field name="view_id" ref="tj_equipment_parts_tree"/>
+    </record>
+
+    <record id="tj_hr_equipment_view_form_inherited" model="ir.ui.view">
+        <field name="name">tj_hr_equipment_view_form_inherited</field>
+        <field name="model">maintenance.equipment</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//notebook" position="inside">
+                <page string="部件">
+                    <field name="equipment_parts_ids"/>
+                </page>
+                <page string="附件">
+                    <button name="action_get_attachment_view"
+                            class="oe_stat_button"
+                            icon="fa-book"
+                            string="附件"
+                            type="object">
+                    </button>
+                    <field name="attachment_ids" widget="one2many" options="{'not_delete': True}">
+                        <kanban quick_create="false" create="0" delete="0">
+                            <field name="id"/>
+                            <field name="mimetype"/>
+                            <field name="type"/>
+                            <field name="datas_fname"/>
+                            <field name="name"/>
+                            <templates>
+                                <t t-name="kanban-box">
+                                    <div class="oe_kanban_global_click">
+                                        <div class="oe_kanban_vignette">
+                                            <div class="oe_attachment">
+                                                <div class="oe_name">
+                                                    <field name="name"/>
+                                                </div>
+                                                <div t-if="record.type.raw_value == 'binary'">
+                                                    <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
+                                                        <t t-set="webimage"
+                                                           t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
+                                                        <div t-if="!webimage" class="o_image"
+                                                             t-att-data-mimetype="record.mimetype.value"/>
+                                                        <div t-if="webimage" class="o_attachment_image">
+                                                            <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
+                                                        </div>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </t>
+                            </templates>
+                        </kanban>
+                    </field>
+                </page>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="tj_maintenance_request_form_inherited" model="ir.ui.view">
+        <field name="name">tj_maintenance_request_form_inherited</field>
+        <field name="model">maintenance.request</field>
+        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//sheet/group/group/field[@name='equipment_id']" position="after">
+                <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
+            </xpath>
+            <xpath expr="//sheet/field[@name='description']" position="after">
+                <notebook colspan="4">
+                    <page string="附件">
+                        <button name="action_get_attachment_view"
+                                class="oe_stat_button"
+                                icon="fa-book"
+                                string="附件"
+                                type="object">
+                        </button>
+                        <field name="attachment_ids" widget="one2many" options="{'not_delete': True}">
+                            <kanban quick_create="false" create="0" delete="0">
+                                <field name="id"/>
+                                <field name="mimetype"/>
+                                <field name="type"/>
+                                <field name="datas_fname"/>
+                                <field name="name"/>
+                                <templates>
+                                    <t t-name="kanban-box">
+                                        <div class="oe_kanban_global_click">
+                                            <div class="oe_kanban_vignette">
+                                                <div class="oe_attachment">
+                                                    <div class="oe_name">
+                                                        <field name="name"/>
+                                                    </div>
+                                                    <div t-if="record.type.raw_value == 'binary'">
+                                                        <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
+                                                            <t t-set="webimage"
+                                                               t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
+                                                            <div t-if="!webimage" class="o_image"
+                                                                 t-att-data-mimetype="record.mimetype.value"/>
+                                                            <div t-if="webimage" class="o_attachment_image">
+                                                                <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
+                                                            </div>
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </t>
+                                </templates>
+                            </kanban>
+                        </field>
+                    </page>
+                </notebook>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem
+            id="menu_equipment_parts"
+            name="设备部件"
+            parent="maintenance.menu_equipment_form"
+            action="tj_equipment_parts_action"
+            groups="base.group_user"
+            sequence="1"/>
+
+    <!--<record id="hr.open_view_employee_list_my" model="ir.actions.act_window">-->
+    <!--<field name="context">{'show_employee_company_id':True}</field>-->
+    <!--</record>-->
+
+</odoo>
