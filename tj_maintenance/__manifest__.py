@@ -11,9 +11,9 @@
     1.维护\n
     """,
     'website': '',
-    'depends': ['maintenance','tj_base'],
+    'depends': ['maintenance'],
     'data': [
-        'views/stock_views.xml',
+        'views/maintenance_views.xml',
         # 'security/ir.model.access.csv',
     ],
     'application': True,
