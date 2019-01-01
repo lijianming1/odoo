@@ -80,14 +80,102 @@
             </xpath>
         </field>
     </record>
+    <!--自定义新视图（先声明视图，后声明动作。）-->
+    <record id="tj_maintenance_request_form" model="ir.ui.view">
+        <field name="name">tj_maintenance_request_form</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button string="Cancel" name="archive_equipment_request" type="object" attrs="{'invisible': [('archive', '=', True)]}"/>
+                    <button string="Reopen Request" name="reset_equipment_request" type="object" attrs="{'invisible': [('archive', '=', False)]}"/>
+                    <field name="stage_id" widget="statusbar" clickable="true" attrs="{'invisible': [('archive', '=', True)]}"/>
+                </header>
+                <sheet>
+                     <div attrs="{'invisible': [('archive', '=', False)]}">
+                        <span class="label label-warning pull-right">Canceled</span>
+                    </div>
+                    <div class="oe_right">
+                        <field name="kanban_state" class="oe_inline" widget="state_selection"/>
+                    </div>
+                    <group>
+                         <group>
+                             <field name="equipment_id" string="机台名称"/>
+                             <field name="equipment_serial" string="设备序列"/>
+                             <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
+                             <field name="archive" invisible="1"/>
+                         </group>
+                         <group>
+                         </group>
 
+                    </group>
+                    <div>
+                        <h1>申请方:</h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="owner_user_id" string="申请人"/>
+                            <field name="owner_user_num" string="申请人工号"/>
+                            <field name="owner_user_team_id" string="申请人工种"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_team_id" options="{'no_create': True, 'no_open': True}" string="指派工种"/>
+                            <field name="technician_user_id" string="指派人"/>
+                            <label for="schedule_date"/>
+                            <div class="o_row">
+                                <field name="schedule_date"/>
+                                <label string="for"/>
+                                <field name="duration" class="oe_inline"/> hours
+                            </div>
+                        </group>
+                        <field name="priority" widget="priority"/>
+                    </group>
+                    <field name='description' placeholder="Internal Note ......."/>
+                </sheet>
+                 <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+    <!--覆盖原维修申请动作，并绑定到新的视图tj_maintenance_request_form-->
+    <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Requests</field>
+        <field name="res_model">maintenance.request</field>
+        <field name="view_mode">kanban,tree,form,pivot,graph,calendar</field>
+        <field name="view_ids" eval="[(5,0,0),
+                          (0,0,{'view_mode':'kanban','view_id': ref('maintenance.hr_equipment_request_view_kanban')}),
+                          (0,0,{'view_mode':'tree','view_id': ref('maintenance.hr_equipment_request_view_tree')}),
+                          (0,0,{'view_mode':'form', 'view_id': ref('tj_maintenance_request_form')})]"/>
+    </record>
     <record id="tj_maintenance_request_form_inherited" model="ir.ui.view">
         <field name="name">tj_maintenance_request_form_inherited</field>
         <field name="model">maintenance.request</field>
         <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//sheet/group/group/field[@name='equipment_id']" position="after">
-                <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
+            <xpath expr="//sheet/div[3]" position="replace">
+                <group>
+                    <group>
+                        <field name="equipment_id" string="机台名称"/>
+                        <field name="equipment_serial" string="设备序列"/>
+                        <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
+                    </group>
+                </group>
+                <div>
+                    <h1>申请方:</h1>
+                </div>
+            </xpath>
+            <xpath expr="//sheet/group" position="replace">
+                <group>
+                    <group>
+                        <field name="owner_user_id" string="申请人"/>
+                    </group>
+                    <group>
+
+                    </group>
+                </group>
             </xpath>
             <xpath expr="//sheet/field[@name='description']" position="after">
                 <notebook colspan="4">
