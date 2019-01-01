@@ -26,127 +26,221 @@
         <field name="view_mode">kanban,tree,form</field>
         <field name="view_id" ref="tj_equipment_parts_tree"/>
     </record>
-
-    <record id="tj_hr_equipment_view_form_inherited" model="ir.ui.view">
-        <field name="name">tj_hr_equipment_view_form_inherited</field>
-        <field name="model">maintenance.equipment</field>
-        <field name="inherit_id" ref="maintenance.hr_equipment_view_form"/>
+    <!--自定义新视图（先声明视图，后声明动作。）-->
+    <record id="tj_maintenance_request_form" model="ir.ui.view">
+        <field name="name">tj_maintenance_request_form</field>
+        <field name="model">maintenance.request</field>
+        <!--<field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>-->
         <field name="arch" type="xml">
-            <xpath expr="//notebook" position="inside">
-                <page string="部件">
-                    <field name="equipment_parts_ids"/>
-                </page>
-                <page string="附件">
-                    <button name="action_get_attachment_view"
-                            class="oe_stat_button"
-                            icon="fa-book"
-                            string="附件"
-                            type="object">
-                    </button>
-                    <field name="attachment_ids" widget="one2many" options="{'not_delete': True}">
-                        <kanban quick_create="false" create="0" delete="0">
-                            <field name="id"/>
-                            <field name="mimetype"/>
-                            <field name="type"/>
-                            <field name="datas_fname"/>
-                            <field name="name"/>
-                            <templates>
-                                <t t-name="kanban-box">
-                                    <div class="oe_kanban_global_click">
-                                        <div class="oe_kanban_vignette">
-                                            <div class="oe_attachment">
-                                                <div class="oe_name">
-                                                    <field name="name"/>
-                                                </div>
-                                                <div t-if="record.type.raw_value == 'binary'">
-                                                    <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
-                                                        <t t-set="webimage"
-                                                           t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
-                                                        <div t-if="!webimage" class="o_image"
-                                                             t-att-data-mimetype="record.mimetype.value"/>
-                                                        <div t-if="webimage" class="o_attachment_image">
-                                                            <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
+            <form string="维护请求">
+                <header>
+                    <button string="取消" name="archive_equipment_request" type="object" attrs="{'invisible': [('archive', '=', True)]}"/>
+                    <button string="重开请求" name="reset_equipment_request" type="object" attrs="{'invisible': [('archive', '=', False)]}"/>
+                    <field name="stage_id" widget="statusbar" clickable="true" attrs="{'invisible': [('archive', '=', True)]}"/>
+                </header>
+                <sheet>
+                    <div attrs="{'invisible': [('archive', '=', False)]}">
+                        <span class="label label-warning pull-right">取消</span>
+                    </div>
+                    <div class="oe_right">
+                        <field name="kanban_state" class="oe_inline" widget="state_selection"/>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="equipment_id" string="机台名称"/>
+                            <field name="equipment_serial" string="设备序列"/>
+                            <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
+                            <field name="archive" invisible="1"/>
+                        </group>
+                        <group>
+                        </group>
+                    </group>
+                    <div>
+                        <h1>申请方:</h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="owner_user_id" string="申请人"/>
+                            <field name="owner_user_num" string="申请人工号"/>
+                            <field name="owner_user_team_id" string="申请人工种"/>
+                        </group>
+                        <group>
+                            <field name="maintenance_team_id" options="{'no_create': True, 'no_open': True}"
+                                   string="指派工种"/>
+                            <field name="technician_user_id" string="指派人"/>
+                            <field name="create_date"/>
+                            <field name="priority" widget="priority"/>
+                        </group>
+                    </group>
+                    <field name='description' placeholder="Internal Note ......."/>
+                    <div attrs="{'invisible': [('stage_id', '=', 1)]}">
+                        <div>
+                            <h1>维修方:</h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="receiving_user" string="接单人"/>
+                                <field name="receiving_user_num" string="接单人工号"/>
+                                <field name="receiving_user_team_id" string="接单人工种"/>
+                                <field name="fault_cause_analysis" string="故障原因分析"/>
+                            </group>
+                            <group>
+                                <field name="receiving_date" string="接收时间"/>
+                                <field name="fault_type" string="故障类型"/>
+                                <field name="processing_way" string="处理方式"/>
+                                <field name="write_date" string="填表时间" readonly="1"/>
+                            </group>
+                        </group>
+                    <field name='receiving_description' placeholder="Internal Note ......."/>
+                    </div>
+
+                    <notebook colspan="4">
+                        <page string="附件">
+                            <button name="action_get_attachment_view"
+                                    class="oe_stat_button"
+                                    icon="fa-book"
+                                    string="附件"
+                                    type="object">
+                            </button>
+                            <field name="attachment_ids" widget="one2many" options="{'not_delete': True}">
+                                <kanban quick_create="false" create="0" delete="0">
+                                    <field name="id"/>
+                                    <field name="mimetype"/>
+                                    <field name="type"/>
+                                    <field name="datas_fname"/>
+                                    <field name="name"/>
+                                    <templates>
+                                        <t t-name="kanban-box">
+                                            <div class="oe_kanban_global_click">
+                                                <div class="oe_kanban_vignette">
+                                                    <div class="oe_attachment">
+                                                        <div class="oe_name">
+                                                            <field name="name"/>
                                                         </div>
-                                                    </a>
+                                                        <div t-if="record.type.raw_value == 'binary'">
+                                                            <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
+                                                                <t t-set="webimage"
+                                                                   t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
+                                                                <div t-if="!webimage" class="o_image"
+                                                                     t-att-data-mimetype="record.mimetype.value"/>
+                                                                <div t-if="webimage" class="o_attachment_image">
+                                                                    <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
+                                                                </div>
+                                                            </a>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-                                </t>
-                            </templates>
-                        </kanban>
-                    </field>
-                </page>
-            </xpath>
+                                        </t>
+                                    </templates>
+                                </kanban>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
         </field>
     </record>
-
-    <record id="tj_maintenance_request_form_inherited" model="ir.ui.view">
-        <field name="name">tj_maintenance_request_form_inherited</field>
-        <field name="model">maintenance.request</field>
-        <field name="inherit_id" ref="maintenance.hr_equipment_request_view_form"/>
-        <field name="arch" type="xml">
-            <xpath expr="//sheet/group/group/field[@name='equipment_id']" position="after">
-                <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
-            </xpath>
-            <xpath expr="//sheet/field[@name='description']" position="after">
-                <notebook colspan="4">
-                    <page string="附件">
-                        <button name="action_get_attachment_view"
-                                class="oe_stat_button"
-                                icon="fa-book"
-                                string="附件"
-                                type="object">
-                        </button>
-                        <field name="attachment_ids" widget="one2many" options="{'not_delete': True}">
-                            <kanban quick_create="false" create="0" delete="0">
-                                <field name="id"/>
-                                <field name="mimetype"/>
-                                <field name="type"/>
-                                <field name="datas_fname"/>
-                                <field name="name"/>
-                                <templates>
-                                    <t t-name="kanban-box">
-                                        <div class="oe_kanban_global_click">
-                                            <div class="oe_kanban_vignette">
-                                                <div class="oe_attachment">
-                                                    <div class="oe_name">
-                                                        <field name="name"/>
-                                                    </div>
-                                                    <div t-if="record.type.raw_value == 'binary'">
-                                                        <a t-attf-href="/web/content/#{record.id.raw_value}?download=1">
-                                                            <t t-set="webimage"
-                                                               t-value="new RegExp('image.*(gif|jpeg|jpg|png)').test(record.mimetype.value)"/>
-                                                            <div t-if="!webimage" class="o_image"
-                                                                 t-att-data-mimetype="record.mimetype.value"/>
-                                                            <div t-if="webimage" class="o_attachment_image">
-                                                                <img t-attf-src="/web/image/#{record.id.raw_value}?download=1"/>
-                                                            </div>
-                                                        </a>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </t>
-                                </templates>
-                            </kanban>
-                        </field>
-                    </page>
-                </notebook>
-            </xpath>
-        </field>
+    <!--覆盖原维修申请动作，并绑定到新的视图tj_maintenance_request_form-->
+    <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
+        <field name="name">Maintenance Requests</field>
+        <field name="res_model">maintenance.request</field>
+        <field name="view_mode">kanban,tree,form,pivot,graph,calendar</field>
+        <field name="view_ids" eval="[(5,0,0),
+                          (0,0,{'view_mode':'kanban','view_id': ref('maintenance.hr_equipment_request_view_kanban')}),
+                          (0,0,{'view_mode':'tree','view_id': ref('maintenance.hr_equipment_request_view_tree')}),
+                          (0,0,{'view_mode':'form', 'view_id': ref('tj_maintenance_request_form')})]"/>
     </record>
 
     <menuitem
             id="menu_equipment_parts"
-            name="设备部件"
-            parent="maintenance.menu_equipment_form"
+            name="机台部件"
+            parent="maintenance.menu_maintenance_configuration"
             action="tj_equipment_parts_action"
             groups="base.group_user"
             sequence="1"/>
 
-    <!--<record id="hr.open_view_employee_list_my" model="ir.actions.act_window">-->
-    <!--<field name="context">{'show_employee_company_id':True}</field>-->
-    <!--</record>-->
+    <record id="tj_fault_type_tree" model="ir.ui.view">
+        <field name="name">tj_fault_type_tree</field>
+        <field name="model">fault.type</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="tj_fault_type_action" model="ir.actions.act_window">
+        <field name="name">故障类型</field>
+        <field name="res_model">fault.type</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="tj_fault_type_tree"/>
+    </record>
+
+    <menuitem
+            id="menu_fault_type"
+            name="故障类型"
+            parent="maintenance.menu_maintenance_configuration"
+            action="tj_fault_type_action"
+            groups="base.group_user"
+            sequence="2"/>
+
+    <record id="tj_processing_way_tree" model="ir.ui.view">
+        <field name="name">tj_processing_way_tree</field>
+        <field name="model">processing.way</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+
+    <record id="tj_processing_way_action" model="ir.actions.act_window">
+        <field name="name">处理方式</field>
+        <field name="res_model">processing.way</field>
+        <field name="view_mode">tree,form</field>
+        <field name="view_id" ref="tj_processing_way_tree"/>
+    </record>
+
+    <menuitem
+            id="menu_processing_way"
+            name="处理方式"
+            parent="maintenance.menu_maintenance_configuration"
+            action="tj_processing_way_action"
+            groups="base.group_user"
+            sequence="3"/>
+
+    <menuitem
+            id="menu_repair_strategy"
+            name="维修策略"
+            parent="maintenance.menu_maintenance_title"
+            groups="base.group_user"
+            sequence="10"/>
+    <menuitem
+            id="menu_regular_maintenance"
+            name="定期维护"
+            parent="tj_maintenance.menu_repair_strategy"
+            action="tj_equipment_parts_action"
+            groups="base.group_user"
+            sequence="1"/>
+    <menuitem
+            id="menu_expert_system"
+            name="专家系统"
+            parent="tj_maintenance.menu_repair_strategy"
+            action="tj_equipment_parts_action"
+            groups="base.group_user"
+            sequence="2"/>
+    <menuitem
+            id="menu_fault_prediction"
+            name="故障预测"
+            parent="tj_maintenance.menu_repair_strategy"
+            action="tj_equipment_parts_action"
+            groups="base.group_user"
+            sequence="2"/>
 
 </odoo>
