@@ -30,7 +30,7 @@ class TJMaintenanceRequest(models.Model):
     equipment_serial = fields.Char("设备序列", related='equipment_id.serial_no')
     owner_user_num = fields.Char("工号")
     owner_user_team_id = fields.Char("工种")
-    owner_user_id = fields.Many2one('res.users', default=False)
+    owner_user_id = fields.Many2one('res.users', readonly=False, default=False)
     receiving_user = fields.Many2one('res.users')
     receiving_user_num = fields.Char("工号")
     receiving_user_team_id = fields.Char("工种")
