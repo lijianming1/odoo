@@ -36,7 +36,12 @@
                 <header>
                     <button string="取消" name="archive_equipment_request" type="object" attrs="{'invisible': [('archive', '=', True)]}"/>
                     <button string="重开请求" name="reset_equipment_request" type="object" attrs="{'invisible': [('archive', '=', False)]}"/>
-                    <field name="stage_id" widget="statusbar" clickable="true" attrs="{'invisible': [('archive', '=', True)]}"/>
+                    <button string="提交" name="archive_submit_request" type="object"
+                            attrs="{'invisible': [('archive', '=', True),('request_state','!=','new_request')]}"/>
+                    <button string="完成" name="reset_done_request" type="object"
+                            attrs="{'invisible': [('archive', '=', True),('request_state','!=','in_progress')]}"/>
+                    <field name="request_state" widget="statusbar" clickable="true" attrs="{'invisible': [('archive', '=', True)]}"/>
+                    <field name="archive" invisible="1"/>
                 </header>
                 <sheet>
                     <div attrs="{'invisible': [('archive', '=', False)]}">
@@ -47,10 +52,10 @@
                     </div>
                     <group>
                         <group>
-                            <field name="equipment_id" string="机台名称"/>
-                            <field name="equipment_serial" string="设备序列"/>
-                            <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]"/>
-                            <field name="archive" invisible="1"/>
+                            <field name="equipment_id" string="机台名称" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="equipment_serial" string="设备序列" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="equipment_parts_id" domain="[('maintenance_equipment_id','=',equipment_id)]" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+
                         </group>
                         <group>
                         </group>
@@ -60,20 +65,20 @@
                     </div>
                     <group>
                         <group>
-                            <field name="owner_user_id" string="申请人"/>
-                            <field name="owner_user_num" string="申请人工号"/>
-                            <field name="owner_user_team_id" string="申请人工种"/>
+                            <field name="owner_user_id" string="申请人" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="owner_user_num" string="申请人工号" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="owner_user_team_id" string="申请人工种" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
                         </group>
                         <group>
                             <field name="maintenance_team_id" options="{'no_create': True, 'no_open': True}"
-                                   string="指派工种"/>
-                            <field name="technician_user_id" string="指派人"/>
-                            <field name="create_date"/>
-                            <field name="priority" widget="priority"/>
+                                   string="指派工种" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="technician_user_id" string="指派人" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="create_date" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                            <field name="priority" widget="priority" attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
                         </group>
                     </group>
-                    <field name='description' placeholder="Internal Note ......."/>
-                    <div attrs="{'invisible': [('stage_id', '=', 1)]}">
+                    <field name='description' placeholder="Internal Note ......." attrs="{'readonly': [('request_state', '!=', 'new_request')]}"/>
+                    <div attrs="{'invisible': [('request_state', '=', 'new_request')]}">
                         <div>
                             <h1>维修方:</h1>
                         </div>

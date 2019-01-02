@@ -39,6 +39,32 @@ class TJMaintenanceRequest(models.Model):
     fault_type = fields.Many2one('fault.type', "故障类型")
     processing_way = fields.Many2one('processing.way', "处理方式")
     receiving_description = fields.Text("维修方备注")
+    request_state = fields.Selection(
+        [('draft', '草稿'), ('new_request', '新的请求'), ('in_progress', '正在进行'), ('done', '完成')], '请求状态')
+
+    @api.multi
+    def archive_equipment_request(self):
+        self.write({'archive': True, 'request_state':'draft'})
+
+    @api.multi
+    def reset_equipment_request(self):
+        """ Reinsert the maintenance request into the maintenance pipe in the first stage"""
+        first_stage_obj = self.env['maintenance.stage'].search([], order="sequence asc", limit=1)
+        # self.write({'active': True, 'stage_id': first_stage_obj.id})
+        self.write({'archive': False, 'stage_id': first_stage_obj.id,'request_state': 'new_request'})
+
+    @api.multi
+    def archive_submit_request(self):
+        first_stage_obj = self.env['maintenance.stage'].search([], order="sequence asc", limit=2)
+        # self.write({'active': True, 'stage_id': first_stage_obj.id})
+        self.write({'archive': False, 'stage_id': first_stage_obj[-1].id, 'request_state': 'in_progress'})
+
+    @api.multi
+    def reset_done_request(self):
+        """ Reinsert the maintenance request into the maintenance pipe in the first stage"""
+        first_stage_obj = self.env['maintenance.stage'].search([], order="sequence asc", limit=3)
+        # self.write({'active': True, 'stage_id': first_stage_obj.id})
+        self.write({'archive': False, 'stage_id': first_stage_obj[-1].id,'request_state': 'done'})
 
     @api.multi
     def write(self, vals):
