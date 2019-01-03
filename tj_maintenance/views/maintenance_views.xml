@@ -9,6 +9,9 @@
                 <xpath expr="//sheet/group[1]" position="replace">
                     <group>
                         <group>
+                            <field name="model"/>
+                            <field name="serial_no"/>
+                            <field name="partner_id" context="{'default_supplier': True, 'default_customer': False}"/>
                             <field name="location" string="使用地点"/>
                             <field name="installation_date"/>
                             <field name="approval_leader"/>
@@ -18,11 +21,13 @@
                             <field name="technical_phones"/>
                             <field name="investment_date"/>
                             <field name="scrap_date"/>
+                            <field name="cost"/>
+                            <field name="warranty"/>
                         </group>
                     </group>
                 </xpath>
-                <xpath expr="//sheet/notebook/page[2]/group/group[2]/field[@name='cost']" position="attributes">
-                    <attribute name="string">设备价值</attribute>
+                <xpath expr="//sheet/notebook/page[2]" position="attributes">
+                    <attribute name="invisible">1</attribute>
                 </xpath>
                 <xpath expr="//sheet/notebook" position="inside">
                     <page string="设备部件">
@@ -48,13 +53,13 @@
                 </xpath>
                 <xpath expr="//div[hasclass('o_kanban_record_body')]" position="replace">
                     <div class="o_kanban_record_body">
-                        <div t-if="record.kb_num.raw_value"><field name="kb_num"/></div>
-                        <div t-if="record.kb_employ_num.raw_value"><field name="kb_employ_num"/></div>
-                        <div t-if="record.kb_running_state.raw_value"><field name="kb_running_state"/></div>
-                        <div t-if="record.kb_production_type.raw_value"><field name="kb_production_type"/></div>
-                        <div t-if="record.kb_work_date.raw_value"><field name="kb_work_date"/></div>
-                        <div t-if="record.kb_device_utilization.raw_value"><field name="kb_device_utilization"/></div>
-                        <div t-if="record.kb_production_qty.raw_value"><field name="kb_production_qty"/></div>
+                        <div t-if="record.kb_num.raw_value">机台号: <field name="kb_num"/></div>
+                        <div t-if="record.kb_employ_num.raw_value">当前员工号: <field name="kb_employ_num"/></div>
+                        <div t-if="record.kb_running_state.raw_value">运行状态: <field name="kb_running_state"/></div>
+                        <div t-if="record.kb_production_type.raw_value">生产类型: <field name="kb_production_type"/></div>
+                        <div t-if="record.kb_work_date.raw_value">持续工作时间: <field name="kb_work_date"/></div>
+                        <div t-if="record.kb_device_utilization.raw_value">设备利用率: <field name="kb_device_utilization"/></div>
+                        <div t-if="record.kb_production_qty.raw_value">生产数量/米数: <field name="kb_production_qty"/></div>
                     </div>
                 </xpath>
             </field>

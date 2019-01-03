@@ -19,13 +19,13 @@ class TJMaintenanceEquipment(models.Model):
     approval_leader = fields.Char('审批领导')
     installation_date = fields.Datetime('安装时间')
     investment_date = fields.Datetime('投用时间')
-    kb_num = fields.Char('机台号')
-    kb_employ_num = fields.Char('当前员工号')
-    kb_running_state = fields.Char('运行状态')
-    kb_production_type = fields.Char('生产类型')
-    kb_work_date = fields.Datetime('持续工作时间')
-    kb_device_utilization = fields.Float('设备利用率')
-    kb_production_qty = fields.Float('生产数量/米数')
+    kb_num = fields.Char('机台号', default='JT001')
+    kb_employ_num = fields.Char('当前员工号', default='TJ001')
+    kb_running_state = fields.Char('运行状态', default='正常')
+    kb_production_type = fields.Char('生产类型', default='None')
+    kb_work_date = fields.Char('持续工作时间', default='None')
+    kb_device_utilization = fields.Float('设备利用率', default='0')
+    kb_production_qty = fields.Float('生产数量/米数', default='0')
 
     @api.multi
     def action_get_attachment_view(self):
