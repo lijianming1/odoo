@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="assets_backend" name="supplier assets" inherit_id="web.assets_backend">
+        <xpath expr="." position="inside">
+            <script type='text/javascript' src="/product_images/static/js/vue2.js"></script>
+            <link rel='stylesheet' href='product_images/static/css/app.css'/>
+            <!--<script type='text/javascript' src='supplier/static/js/manifest.js'></script>-->
+            <!--<script type='text/javascriptmain_picture' src='supplier/static/js/vendor.js'></script>-->
+            <!--<script type='text/javascript' src='supplier/static/js/app.js'></script>-->
+            <script type='text/javascript' src='product_images/static/js/manifest.js'></script>
+            <script type='text/javascript' src='product_images/static/js/vendor.js'></script>
+            <script type='text/javascript' src='product_images/static/js/app.js'></script>
+        </xpath>
+    </template>
+    <data>
+        <record id="maintenance_request_form" model="ir.ui.view">
+            <field name="name">maintenance.request.form</field>
+            <field name="model">maintenance.request</field>
+            <field name="inherit_id" ref="tj_maintenance.tj_maintenance_request_form"/>
+            <field name="priority" eval="200"/>
+            <field name="arch" type="xml">
+                <notebook position="inside">
+                    <page name="images_html" string="图片列表">
+                        <field name="images_html" widget="html"/>
+                    </page>
+                </notebook>
+            </field>
+      </record>
+    </data>
+</odoo>

@@ -1,0 +1,23 @@
+<div id="product-images">
+    <images :config="config"></images>
+</div>
+
+<script>
+    var config = {
+        fullscreen: true, // 控制是否显示全屏按钮
+        // 添加一些many2one的配置项
+        // string: 'ddd',
+        // model: 'product.image',
+        // name: 'maintenance_request',
+        // domain:[('template_id', '=', editor_id)],
+        osv: {
+            editor_id: ${editor_id|safe}
+        },
+    };
+    new Vue({
+        el: '#product-images',
+        data: {
+            config: config
+        }
+    })
+</script>
