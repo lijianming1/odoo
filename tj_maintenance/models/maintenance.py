@@ -81,6 +81,7 @@ class TJMaintenanceRequest(models.Model):
         res['context'] = {'default_res_model': 'maintenance.request', 'default_res_id': self.id}
         return res
 
+
 class EquipmentParts(models.Model):
     _name = "equipment.parts"
     _description = "机台部件"
@@ -94,14 +95,32 @@ class EquipmentParts(models.Model):
     parameters_5 = fields.Char('参数5')
     notes = fields.Text('备注')
 
+
 class FaulType(models.Model):
     _name = "fault.type"
     _description = "故障类型"
 
     name = fields.Char('故障类型名称')
 
+
 class ProcessingWay(models.Model):
     _name = "processing.way"
     _description = "处理方式"
 
     name = fields.Char('处理方式名称')
+
+
+class MonitoringConfiguration(models.Model):
+    _name = "monitoring.configuration"
+    _description = "监测配置"
+
+    equipment_part_id = fields.Many2one('equipment.parts','机台部件')
+    equipment_id = fields.Many2one('maintenance.equipment','机台',related='equipment_part_id.maintenance_equipment_id')
+    equipment_serial = fields.Char('机台序列',related='equipment_id.serial_no')
+    monitor_type = fields.Selection([('voltage', '电压'), ('current', '电流'),('thermal', '温度'), ('wire_diameter', '线径')], string="监测类型")
+    Threshold_upper_limit = fields.Float(string='阈值上限', digits=dp.get_precision('Unit of Measure'))
+    threshold_lower_limit = fields.Float(string='阈值上限', digits=dp.get_precision('Unit of Measure'))
+    note = fields.Text('备注：')
+    enable = fields.Boolean('使能')
+    alarm_status = fields.Integer('报警状态(条)')
+    is_confirm = fields.Boolean('确认',default=False)
