@@ -11,7 +11,7 @@
     1.维护\n
     """,
     'website': '',
-    'depends': ['web','maintenance'],
+    'depends': ['web','maintenance','decimal_precision'],
     'data': [
         'views/maintenance_views.xml',
         'views/templates.xml',
