@@ -11,10 +11,14 @@
     1.维护\n
     """,
     'website': '',
-    'depends': ['maintenance'],
+    'depends': ['web','maintenance'],
     'data': [
         'views/maintenance_views.xml',
+        'views/templates.xml',
         # 'security/ir.model.access.csv',
+    ],
+    'qweb': [
+        'static/src/xml/echarts_action.xml',
     ],
     'application': True,
     # 'uninstall_hook': 'uninstall_hook',
