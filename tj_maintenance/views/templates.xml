@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright 2018 Naglis Jonaitis
+     License LGPL-3 or later (https://www.gnu.org/licenses/lgpl). -->
+<odoo>
+
+<template id="assets_backend" name="tj_maintenance assets" inherit_id="web.assets_backend">
+    <xpath expr="." position="inside">
+		<link rel="stylesheet" href="/tj_maintenance/static/src/css/style.css"/>
+		<script type="text/javascript" src="/tj_maintenance/static/src/js/echarts.common.min.js"></script>
+		<script type="text/javascript" src="/tj_maintenance/static/src/js/actions.js"></script>
+	</xpath>
+</template>
+</odoo>

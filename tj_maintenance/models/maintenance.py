@@ -45,7 +45,7 @@ class TJMaintenanceRequest(models.Model):
     equipment_serial = fields.Char("设备序列", related='equipment_id.serial_no')
     owner_user_num = fields.Char("工号")
     owner_user_team_id = fields.Char("工种")
-    owner_user_id = fields.Many2one('res.users', readonly=False, default=False)
+    applicant_id = fields.Many2one('res.users','申请人')
     receiving_user = fields.Many2one('res.users')
     receiving_user_num = fields.Char("工号")
     receiving_user_team_id = fields.Char("工种")
@@ -119,8 +119,20 @@ class MonitoringConfiguration(models.Model):
     equipment_serial = fields.Char('机台序列',related='equipment_id.serial_no')
     monitor_type = fields.Selection([('voltage', '电压'), ('current', '电流'),('thermal', '温度'), ('wire_diameter', '线径')], string="监测类型")
     Threshold_upper_limit = fields.Float(string='阈值上限', digits=dp.get_precision('Unit of Measure'))
-    threshold_lower_limit = fields.Float(string='阈值上限', digits=dp.get_precision('Unit of Measure'))
+    threshold_lower_limit = fields.Float(string='阈值下限', digits=dp.get_precision('Unit of Measure'))
     note = fields.Text('备注：')
     enable = fields.Boolean('使能')
     alarm_status = fields.Integer('报警状态(条)')
     is_confirm = fields.Boolean('确认',default=False)
+
+    @api.multi
+    def open_chart_monitoring_report(self):
+        monitor_type_dict = {'voltage':'电压','current':'电流','thermal': '温度', 'wire_diameter': '线径'}
+        data = {'equipment_part': self.equipment_part_id.name, 'equipment': self.equipment_id.name,
+                'equipment_serial': self.equipment_serial, 'monitor_type': monitor_type_dict[self.monitor_type],
+                'Threshold_upper_limit': self.Threshold_upper_limit,
+                'threshold_lower_limit': self.threshold_lower_limit, 'note': self.note or None}
+        return {
+            'type': 'chart_monitoring_report',
+            'data': data,
+        }

@@ -142,7 +142,7 @@
                         </div>
                         <group>
                             <group>
-                                <field name="owner_user_id" string="申请人" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
+                                <field name="applicant_id" string="申请人" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="owner_user_num" string="申请人工号"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="owner_user_team_id" string="申请人工种"
@@ -308,6 +308,7 @@
                     <field name="enable"/>
                     <field name="alarm_status"/>
                     <field name="note"/>
+                    <button name="open_chart_monitoring_report" type="object" string="展示" class="oe_highlight"/>
                 </tree>
             </field>
         </record>
@@ -323,13 +324,13 @@
                         </h1>
                         <group>
                             <group>
-                            </group>
-                            <group>
                                 <field name="equipment_part_id"/>
                                 <field name="equipment_id"/>
                                 <field name="equipment_serial"/>
                                 <field name="monitor_type"/>
                                 <field name="Threshold_upper_limit"/>
+                            </group>
+                            <group>
                                 <field name="threshold_lower_limit"/>
                                 <field name="enable"/>
                                 <field name="alarm_status"/>
