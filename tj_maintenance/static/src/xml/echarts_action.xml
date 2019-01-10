@@ -5,8 +5,8 @@
 
 <t t-name="Monitoring_Chart">
     <div class="row">
-        <div id="chart-monitoring-report" class="col-md-8"></div>
-        <div id="monitoring-data" class="col-md-4" style="font-size:16px;text-align:left">
+        <div id="chart-monitoring-report" class="col-md-9"></div>
+        <div id="monitoring-data" class="col-md-3" style="font-size:16px;text-align:left">
             <div>
                 <strong>机台部件：
                     <span t-esc="data.equipment_part"/>
