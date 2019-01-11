@@ -142,7 +142,7 @@
                         </div>
                         <group>
                             <group>
-                                <field name="owner_user_id" string="申请人" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
+                                <field name="applicant_id" string="申请人" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="owner_user_num" string="申请人工号"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="owner_user_team_id" string="申请人工种"
@@ -293,6 +293,70 @@
             <field name="view_id" ref="tj_processing_way_tree"/>
         </record>
 
+        <record id="tj_monitoring_configuration_tree" model="ir.ui.view">
+            <field name="name">tj_monitoring_configuration_tree</field>
+            <field name="model">monitoring.configuration</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="id"/>
+                    <field name="equipment_part_id"/>
+                    <field name="equipment_id"/>
+                    <field name="equipment_serial"/>
+                    <field name="monitor_type"/>
+                    <field name="Threshold_upper_limit"/>
+                    <field name="threshold_lower_limit"/>
+                    <field name="enable"/>
+                    <field name="alarm_status"/>
+                    <field name="note"/>
+                    <button name="open_chart_monitoring_report" type="object" string="展示" class="oe_highlight"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="tj_monitoring_configuration_form" model="ir.ui.view">
+            <field name="name">tj_monitoring_configuration_form</field>
+            <field name="model">monitoring.configuration</field>
+            <field name="arch" type="xml">
+                <form delete="false">
+                    <sheet>
+                        <h1>
+                            <field name="id" class="oe_inline"/>
+                        </h1>
+                        <group>
+                            <group>
+                                <field name="equipment_part_id"/>
+                                <field name="equipment_id"/>
+                                <field name="equipment_serial"/>
+                                <field name="monitor_type"/>
+                                <field name="Threshold_upper_limit"/>
+                            </group>
+                            <group>
+                                <field name="threshold_lower_limit"/>
+                                <field name="enable"/>
+                                <field name="alarm_status"/>
+                                <field name="note"/>
+                            </group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tj_monitoring_configuration_action" model="ir.actions.act_window">
+            <field name="name">监测配置</field>
+            <field name="res_model">monitoring.configuration</field>
+            <field name="view_mode">tree,form</field>
+            <field name="view_id" ref="tj_monitoring_configuration_tree"/>
+        </record>
+
+        <record id="tj_monitoring_configuration_action2" model="ir.actions.act_window">
+            <field name="name">监测配置</field>
+            <field name="res_model">monitoring.configuration</field>
+            <field name="view_mode">tree</field>
+            <field name="view_id" ref="tj_monitoring_configuration_tree"/>
+        </record>
+
+
         <menuitem
                 id="menu_processing_way"
                 name="处理方式"
@@ -322,11 +386,25 @@
                 groups="base.group_user"
                 sequence="2"/>
         <menuitem
+                id="menu_monitoring_configuration"
+                name="监测配置"
+                parent="tj_maintenance.menu_expert_system"
+                action="tj_monitoring_configuration_action"
+                groups="base.group_user"
+                sequence="2"/>
+        <menuitem
+                id="menu_monitoring_journal"
+                name="报警日志"
+                parent="tj_maintenance.menu_expert_system"
+                action="tj_monitoring_configuration_action2"
+                groups="base.group_user"
+                sequence="2"/>
+        <menuitem
                 id="menu_fault_prediction"
                 name="故障预测"
                 parent="tj_maintenance.menu_repair_strategy"
                 action="tj_equipment_parts_action"
                 groups="base.group_user"
-                sequence="2"/>
+                sequence="3"/>
     </data>
 </odoo>

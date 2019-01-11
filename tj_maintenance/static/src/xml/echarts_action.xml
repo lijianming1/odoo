@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2018 Naglis Jonaitis
+     License LGPL-3 or later (https://www.gnu.org/licenses/lgpl). -->
+<templates xml:space="preserve">
+
+<t t-name="Monitoring_Chart">
+    <div class="row">
+        <div id="chart-monitoring-report" class="col-md-9"></div>
+        <div id="monitoring-data" class="col-md-3" style="font-size:16px;text-align:left">
+            <div>
+                <strong>机台部件：
+                    <span t-esc="data.equipment_part"/>
+                </strong>
+            </div><br/>
+            <div style="padding-bottom:5px">机台：<t t-esc="data.equipment"/></div>
+            <div style="padding-bottom:5px">机台序列：<t t-esc="data.equipment_serial"/></div>
+            <div style="padding-bottom:5px">监测类型：<t t-esc="data.monitor_type"/></div>
+            <div style="padding-bottom:5px">阈值上限：<t t-esc="data.Threshold_upper_limit"/></div>
+            <div style="padding-bottom:5px">阈值下限：<t t-esc="data.threshold_lower_limit"/></div>
+            <div style="padding-bottom:5px">备注：<t t-esc="data.note"/></div>
+        </div>
+    </div>
+</t>
+</templates>
