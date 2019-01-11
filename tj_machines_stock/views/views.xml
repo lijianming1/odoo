@@ -1,0 +1,7 @@
+<odoo>
+  <data>
+
+    <!-- Top menu item -->
+    <menuitem name="设备库存" id="tj_machines_stock.menu_root"/>
+  </data>
+</odoo>
