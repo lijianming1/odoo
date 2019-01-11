@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
+        <!--定期维修 定时任务-->
+        <record model="ir.cron" id="periodic_maintenance_requests_cron">
+            <field name="name">定期维修定时任务</field>
+            <field name="model_id" ref="model_periodic_maintenance"/>
+            <field name="state">code</field>
+            <field name="code">model._cron_generate_requests2()</field>
+            <field name="interval_number">1</field>
+            <field name="interval_type">minutes</field>
+            <field name="numbercall">-1</field>
+            <field name="doall" eval="False"/>
+        </record>
         <record id="tj_maintenance_equipment_view_form_inherit" model="ir.ui.view">
             <field name="name">maintenance.equipment.view.form.inherit.hr</field>
             <field name="model">maintenance.equipment</field>
@@ -29,14 +40,70 @@
                 <xpath expr="//sheet/notebook/page[2]" position="attributes">
                     <attribute name="invisible">1</attribute>
                 </xpath>
+                <xpath expr="//sheet/notebook/page[3]" position="replace">
+                    <page string="定期维护">
+                        <field name="periodic_maintenance_ids"/>
+                    </page>
+                </xpath>
                 <xpath expr="//sheet/notebook" position="inside">
-                    <page string="设备部件">
+                    <page string="机台部件">
                         <field name="equipment_parts_ids"/>
                     </page>
                 </xpath>
             </field>
         </record>
-
+        <record id="tj_maintenance_workers_view_filter" model="ir.ui.view">
+            <field name="name">tj_maintenance.workers.view.filter</field>
+            <field name="model">tj_maintenance.workers</field>
+            <field name="arch" type="xml">
+                <search string="搜索视图">
+                    <field name="teamname_ids"/>
+                </search>
+            </field>
+        </record>
+        <record id="tj_maintenance_request_view_kanban_inherit" model="ir.ui.view">
+            <field name="name">maintenance.request.kanban</field>
+            <field name="model">maintenance.request</field>
+            <field name="inherit_id" ref="maintenance.hr_equipment_request_view_kanban"/>
+            <field name="arch" type="xml">
+                <xpath expr="//div[hasclass('oe_kanban_content')]" position="replace">
+                    <div class="o_kanban_record_body">
+                        <span name="owner_worker_id" t-if="record.owner_worker_id.raw_value">申请者:
+                            <field name="owner_worker_id"/>
+                            <br/>
+                        </span>
+                        <span name="technician_worker_id" t-if="record.technician_worker_id.raw_value">指派人:
+                            <field name="technician_worker_id"/>
+                            <br/>
+                        </span>
+                        <span class="oe_grey" t-if="record.equipment_id.raw_value">机台:
+                            <field name="equipment_id"/>
+                            <br/>
+                        </span>
+                    </div>
+                    <div class="o_kanban_record_bottom">
+                        <div class="oe_kanban_bottom_left">
+                            <field name="priority" widget="priority"/>
+                            <t t-if="record.message_needaction_counter.raw_value">
+                                <span class='oe_kanban_mail_new' title='Unread Messages'>
+                                    <i class='fa fa-comments'/>
+                                    <t t-raw="record.message_needaction_counter.raw_value"/>
+                                </span>
+                            </t>
+                            <div class="o_kanban_inline_block ml4 mr4">
+                                <field name="activity_ids" widget="kanban_activity"/>
+                            </div>
+                        </div>
+                        <div class="oe_kanban_bottom_right">
+                            <field name="kanban_state" widget="state_selection"/>
+                            <!--<img t-att-src="kanban_image('res.users', 'image_small', record.technician_user_id.raw_value)"-->
+                            <!--t-att-title="record.technician_user_id.value" width="24" height="24"-->
+                            <!--class="oe_kanban_avatar pull-right"/>-->
+                        </div>
+                    </div>
+                </xpath>
+            </field>
+        </record>
         <record id="tj_equipment_view_kanban" model="ir.ui.view">
             <field name="name">equipment.kanban</field>
             <field name="model">maintenance.equipment</field>
@@ -53,50 +120,99 @@
                 </xpath>
                 <xpath expr="//div[hasclass('o_kanban_record_body')]" position="replace">
                     <div class="o_kanban_record_body">
-                        <div t-if="record.kb_num.raw_value">机台号: <field name="kb_num"/></div>
-                        <div t-if="record.kb_employ_num.raw_value">当前员工号: <field name="kb_employ_num"/></div>
-                        <div t-if="record.kb_running_state.raw_value">运行状态: <field name="kb_running_state"/></div>
-                        <div t-if="record.kb_production_type.raw_value">生产类型: <field name="kb_production_type"/></div>
-                        <div t-if="record.kb_work_date.raw_value">持续工作时间: <field name="kb_work_date"/></div>
-                        <div t-if="record.kb_device_utilization.raw_value">设备利用率: <field name="kb_device_utilization"/></div>
-                        <div t-if="record.kb_production_qty.raw_value">生产数量/米数: <field name="kb_production_qty"/></div>
+                        <div class="col-xs-6 o_kanban_primary_left">
+                            <div class="row">
+                                <div class="col-xs-7">
+                                    <small>机台号:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_num.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>员工号:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_employ_num.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>运行状态:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_running_state.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>生产类型:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_production_type.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>工作时间:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_work_date.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>利用率:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_device_utilization.value"/>
+                                </div>
+                                <div class="col-xs-7">
+                                    <small>产量:</small>
+                                </div>
+                                <div class="col-xs-5">
+                                    <t t-esc="record.kb_production_qty.value"/>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </xpath>
             </field>
         </record>
 
-        <record id="maintenance.hr_equipment_action" model="ir.actions.act_window">
-            <field name="name">机台</field>
-            <field name="res_model">maintenance.equipment</field>
-            <field name="view_mode">kanban,tree,form</field>
-            <field name="view_id" ref="tj_equipment_view_kanban"/>
-        </record>
-
-        <menuitem
-                id="tj_menu_equipment_maintenance"
-                name="机台"
-                parent="maintenance.menu_equipment_form"
-                action="maintenance.hr_equipment_action"
-                groups="base.group_user"
-                sequence="0"/>
-
-
         <record id="tj_equipment_parts_tree" model="ir.ui.view">
             <field name="name">equipment.parts.tree</field>
             <field name="model">equipment.parts</field>
+            <field name="type">tree</field>
             <field name="arch" type="xml">
                 <tree>
                     <field name="name"/>
-                    <field name="maintenance_equipment_id"/>
+                    <field name="name_serial"/>
+                    <field name="parts_type"/>
+                    <field name="parts_parameter"/>
+                    <field name="parts_stock_balance"/>
                 </tree>
             </field>
         </record>
+        <record id="tj_equipment_parts_form" model="ir.ui.view">
+            <field name="name">equipment.parts.form</field>
+            <field name="model">equipment.parts</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div>
+                            <h1>机台部件</h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="name"/>
+                                <field name="name_serial"/>
+                                <field name="parts_type"/>
+                                <field name="parts_parameter"/>
+                            </group>
+                            <group>
+                                <field name="parts_suppliers"/>
+                                <field name="parts_stock_balance"/>
+                            </group>
+                        </group>
+                        <label for="notes" string="备注"/>
+                        <field name='notes' placeholder="备注 ......."/>
+                    </sheet>
+                </form>
+            </field>
 
-        <record id="tj_equipment_parts_action" model="ir.actions.act_window">
-            <field name="name">设备部件</field>
-            <field name="res_model">equipment.parts</field>
-            <field name="view_mode">kanban,tree,form</field>
-            <field name="view_id" ref="tj_equipment_parts_tree"/>
         </record>
         <!--自定义新视图（先声明视图，后声明动作。）-->
         <record id="tj_maintenance_request_form" model="ir.ui.view">
@@ -127,10 +243,12 @@
                         <group>
                             <group>
                                 <field name="equipment_id" string="机台名称" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
-                                <field name="equipment_serial" string="设备序列"
+                                <field name="equipment_model" string="机台型号"
+                                       attrs="{'readonly':[('stage_id', '!=', 1)]}"/>
+                                <field name="equipment_serial" string="机台序列"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
-                                <field name="equipment_parts_id"
-                                       domain="[('maintenance_equipment_id','=',equipment_id)]"
+                                <field name="equipment_parts_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="archive" invisible="1"/>
                             </group>
@@ -142,16 +260,15 @@
                         </div>
                         <group>
                             <group>
-                                <field name="applicant_id" string="申请人" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
-                                <field name="owner_user_num" string="申请人工号"
+                                <field name="owner_worker_id" string="申请人"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
-                                <field name="owner_user_team_id" string="申请人工种"
-                                       attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
+                                <field name="owner_worker_num" string="申请人工号"/>
+                                <field name="owner_worker_team" string="申请人工种"/>
                             </group>
                             <group>
                                 <field name="maintenance_team_id" options="{'no_create': True, 'no_open': True}"
                                        string="指派工种" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
-                                <field name="technician_user_id" string="指派人"
+                                <field name="technician_worker_id" string="指派人"
                                        attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="create_date" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
                                 <field name="priority" widget="priority" attrs="{'readonly': [('stage_id', '!=', 1)]}"/>
@@ -165,22 +282,30 @@
                             </div>
                             <group>
                                 <group>
-                                    <field name="receiving_user" string="接单人"/>
-                                    <field name="receiving_user_num" string="接单人工号"/>
-                                    <field name="receiving_user_team_id" string="接单人工种"/>
-                                    <field name="fault_cause_analysis" string="故障原因分析"/>
+                                    <field name="receiving_worker_id" string="接单人"/>
+                                    <field name="receiving_worker_num" string="接单人工号"/>
+                                    <field name="receiving_worker_team" string="接单人工种" readonly="False"/>
                                 </group>
                                 <group>
                                     <field name="receiving_date" string="接收时间"/>
-                                    <field name="fault_type" string="故障类型"/>
-                                    <field name="processing_way" string="处理方式"/>
                                     <field name="write_date" string="填表时间" readonly="1"/>
+                                    <field name="fault_cause_analysis" string="故障原因分析"/>
                                 </group>
+                                <label for="fault_type_ids" string="故障类型:"/>
+                                <field name="fault_type_ids" widget="many2many_tags"
+                                       options="{'color_field': 'color'}"/>
+                                <b>
+                                    <label for="handelway_ids" string="处理方式:"/>
+                                </b>
+                                <field name="handelway_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
                             </group>
                             <field name='receiving_description' placeholder="Internal Note ......."/>
                         </div>
 
                         <notebook colspan="4">
+                            <page string="消耗件">
+                                <field name="parts_consume_ids"/>
+                            </page>
                             <page string="附件">
                                 <button name="action_get_attachment_view"
                                         class="oe_stat_button"
@@ -232,65 +357,306 @@
                 </form>
             </field>
         </record>
+
+        <record id="tj_maintenance_request_view_calendar" model="ir.ui.view">
+            <field name="name">tj_maintenance.request.view.calendar</field>
+            <field name="model">maintenance.request</field>
+            <field name="arch" type="xml">
+                <calendar date_start="create_date" date_delay="duration" color="technician_worker_id">
+                    <field name="equipment_id"/>
+                    <field name="technician_worker_id"/>
+                </calendar>
+            </field>
+        </record>
+
+        <record id="tj_maintenance_request_view_tree" model="ir.ui.view">
+        <field name="name">tj_maintenance.request.view.tree</field>
+        <field name="model">maintenance.request</field>
+        <field name="arch" type="xml">
+            <tree string="maintenance Request" decoration-bf="message_needaction==True">
+                <field name="message_needaction" invisible="1"/>
+                <field name="equipment_id"/>
+                <field name="equipment_serial"/>
+                <field name="equipment_parts_ids" widget="many2many_tags" options="{'color_field':'color'}"/>
+                <field name="owner_worker_id" string="申请人"/>
+                <field name="owner_worker_num" string="申请人工号"/>
+                <field name="receiving_worker_num" string="接单人"/>
+                <field name="owner_worker_num" string="接单人工号"/>
+                <field name="stage_id" string="维护阶段"/>
+            </tree>
+        </field>
+    </record>
+
+        <record id="tj_fault_type_tree" model="ir.ui.view">
+            <field name="name">tj_fault_type_tree</field>
+            <field name="model">fault.type</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" string="故障类型"/>
+                </tree>
+            </field>
+        </record>
+        <record id="tj_maintenance_type_tree_view" model="ir.ui.view">
+            <field name="name">tj_maintenance.type.tree.view</field>
+            <field name="model">maintenance.type</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="name" string="维护方法"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="tj_maintenance_type_form_view" model="ir.ui.view">
+            <field name="name">tj.fault.type.form</field>
+            <field name="model">maintenance.type</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="维护方法">
+                    <sheet>
+                        <div>
+                            <h1>维护方法</h1>
+                        </div>
+                        <group>
+                            <field name="name" string="维护方法"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tj_fault_type_form" model="ir.ui.view">
+            <field name="name">tj.fault.type.form</field>
+            <field name="model">fault.type</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="故障类型">
+                    <sheet>
+                        <div>
+                            <h1>故障类型</h1>
+                        </div>
+                        <group>
+                            <field name="name" string="故障类型"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="tj_maintenance_periodic_view_tree" model="ir.ui.view">
+            <field name="name">tj_maintenance.periodic.tree</field>
+            <field name="model">periodic.maintenance</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="定期维修">
+                    <field name="equipment_id"/>
+                    <field name="equipment_model" string="机台型号"/>
+                    <field name="periodic_equipment_parts_ids" widget="many2many_tags"
+                           options="{'color_field':'color'}"/>
+                    <field name="recent_maintenance_date"/>
+                    <field name="next_maintenance_date"/>
+                </tree>
+            </field>
+        </record>
+        <record id="tj_maintenance_periodic_view_form" model="ir.ui.view">
+            <field name="name">tj_maintenance.periodic.form</field>
+            <field name="model">periodic.maintenance</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="定期维修">
+                    <sheet>
+                        <div>
+                            <h1>定期维修</h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="equipment_id"/>
+                                <field name="equipment_serial"/>
+                                <field name="periodic_equipment_parts_ids" widget="many2many_tags"
+                                       options="{'color_field':'color'}"/>
+                            </group>
+                            <group>
+                            </group>
+                        </group>
+                        <group>
+                            <group>
+                                <field name="maintenance_type_id"/>
+                                <field name="maintenance_duration"/>
+                                <field name="maintenance_start_date"/>
+                                <field name="next_maintenance_date"/>
+                            </group>
+                            <group>
+                                <field name="recent_maintenance_date"/>
+                                <field name="owner_worker"/>
+                                <field name="maintenance_repaire_plan_duration"/>
+                                <field name="priority" widget="priority"/>
+                            </group>
+                        </group>
+                        <label for="maintenance_description" string="备注"/>
+                        <field name='maintenance_description' placeholder="备注 ......."/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!--用户配置视图-->
+        <record id="tj_maintenance.workers_view_form" model="ir.ui.view">
+            <field name="name">tj_maintenance.workers_view_form</field>
+            <field name="model">tj_maintenance.workers</field>
+            <field name="arch" type="xml">
+                <form string="人员配置">
+                    <sheet>
+                        <group>
+                            <field name="name"/>
+                            <field name="workernumber"/>
+                            <field name="teamname_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                            <field name="phone" widget="phone"/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tj_maintenance_workers_view_tree" model="ir.ui.view">
+            <field name="name">tj_maintenance.workers.view.tree</field>
+            <field name="model">tj_maintenance.workers</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="人员配置列表">
+                    <field name="name"/>
+                    <field name="workernumber"/>
+                    <field name="teamname_ids" widget="many2many_tags" options="{'color_field': 'color'}"/>
+                    <field name="phone" widget="phone"/>
+                </tree>
+            </field>
+        </record>
+        <record id="tj_maintenance_team_view_form" model="ir.ui.view">
+            <field name="name">maintenance.team.view.form</field>
+            <field name="model">maintenance.team</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="工种配置">
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="name" class="oe_edit_only" string="工种名称"/>
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+        <record id="tj_partsconsume_view_tree" model="ir.ui.view">
+            <field name="name">tj_partsconsume.view.tree</field>
+            <field name="model">parts.consume</field>
+            <field name="type">tree</field>
+            <field name="arch" type="xml">
+                <tree string="消耗部件">
+                    <field name="name_id"/>
+                    <field name="parts_type"/>
+                    <field name="parts_parameter"/>
+                    <field name="parts_consume_mum"/>
+                    <field name="create_date" string="记录时间"/>
+                </tree>
+            </field>
+        </record>
+        <record id="tj_partsconsume_view_form" model="ir.ui.view">
+            <field name="name">tj_partsconsume.view.form</field>
+            <field name="model">parts.consume</field>
+            <field name="type">form</field>
+            <field name="arch" type="xml">
+                <form string="消耗部件">
+                    <sheet>
+                        <group>
+                            <field name="name_id"/>
+                            <field name="parts_type"/>
+                            <field name="parts_parameter"/>
+                            <field name="parts_consume_mum"/>
+                        </group>
+                        <group>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="tj_parts_consume_graph_view" model="ir.ui.view">
+            <field name="name">parts.consume.graph</field>
+            <field name="model">parts.consume</field>
+            <field name="arch" type="xml">
+                <graph string="部件消耗">
+                    <field name="name_id"/>
+                    <field name="parts_consume_mum" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="maintenance.maintenance_team_action_settings" model="ir.actions.act_window">
+            <field name="name">工种</field>
+            <field name="res_model">maintenance.team</field>
+            <field name="view_mode">tree,kanban,form</field>
+            <field name="view_ids" eval="[(5, 0, 0),
+                (0, 0, {'view_mode': 'kanban', 'view_id': ref('maintenance.maintenance_team_view_kanban')}),
+                (0, 0, {'view_mode': 'tree', 'view_id': ref('maintenance.maintenance_team_view_tree')}),
+                (0, 0, {'view_mode': 'form', 'view_id': ref('tj_maintenance_team_view_form')})
+                ]"/>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    Click to add a team in the maintenance request.
+                </p>
+            </field>
+        </record>
         <!--覆盖原维修申请动作，并绑定到新的视图tj_maintenance_request_form-->
         <record id="maintenance.hr_equipment_request_action" model="ir.actions.act_window">
             <field name="name">Maintenance Requests</field>
             <field name="res_model">maintenance.request</field>
             <field name="view_mode">kanban,tree,form,pivot,graph,calendar</field>
             <field name="view_ids" eval="[(5,0,0),
-                          (0,0,{'view_mode':'kanban','view_id': ref('maintenance.hr_equipment_request_view_kanban')}),
-                          (0,0,{'view_mode':'tree','view_id': ref('maintenance.hr_equipment_request_view_tree')}),
+                          (0,0,{'view_mode':'kanban','view_id': ref('tj_maintenance_request_view_kanban_inherit')}),
+                          (0,0,{'view_mode':'tree','view_id': ref('tj_maintenance_request_view_tree')}),
+                          (0,0,{'view_mode':'calendar','view_id': ref('tj_maintenance_request_view_calendar')}),
                           (0,0,{'view_mode':'form', 'view_id': ref('tj_maintenance_request_form')})]"/>
         </record>
-
-        <menuitem
-                id="menu_equipment_parts"
-                name="机台部件"
-                parent="maintenance.menu_maintenance_configuration"
-                action="tj_equipment_parts_action"
-                groups="base.group_user"
-                sequence="1"/>
-
-        <record id="tj_fault_type_tree" model="ir.ui.view">
-            <field name="name">tj_fault_type_tree</field>
-            <field name="model">fault.type</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name"/>
-                </tree>
-            </field>
-        </record>
-
         <record id="tj_fault_type_action" model="ir.actions.act_window">
             <field name="name">故障类型</field>
             <field name="res_model">fault.type</field>
             <field name="view_mode">tree,form</field>
             <field name="view_id" ref="tj_fault_type_tree"/>
         </record>
-
-        <menuitem
-                id="menu_fault_type"
-                name="故障类型"
-                parent="maintenance.menu_maintenance_configuration"
-                action="tj_fault_type_action"
-                groups="base.group_user"
-                sequence="2"/>
-
-        <record id="tj_processing_way_tree" model="ir.ui.view">
-            <field name="name">tj_processing_way_tree</field>
-            <field name="model">processing.way</field>
-            <field name="arch" type="xml">
-                <tree>
-                    <field name="name"/>
-                </tree>
-            </field>
+        <!--定期维修action-->
+        <record id="tj_maintenance_periodic_maintenance_action" model="ir.actions.act_window">
+            <field name="name">定期维修</field>
+            <field name="res_model">periodic.maintenance</field>
+            <field name="view_mode">tree,form,kanban</field>
+            <field name="view_id" ref="tj_maintenance_periodic_view_tree"/>
+            <field name="target">current</field>
         </record>
-
-        <record id="tj_processing_way_action" model="ir.actions.act_window">
-            <field name="name">处理方式</field>
-            <field name="res_model">processing.way</field>
+        <record id="tj_maintenance_hr_equipment_action" model="ir.actions.act_window">
+            <field name="name">机台</field>
+            <field name="res_model">maintenance.equipment</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="tj_equipment_view_kanban"/>
+        </record>
+        <record id="tj_equipment_parts_action" model="ir.actions.act_window">
+            <field name="name">机台部件</field>
+            <field name="res_model">equipment.parts</field>
+            <field name="view_mode">kanban,tree,form</field>
+            <field name="view_id" ref="tj_equipment_parts_tree"/>
+        </record>
+        <record id="tj_maintenance_workers_action" model="ir.actions.act_window">
+            <field name="name">人员配置</field>
+            <field name="res_model">tj_maintenance.workers</field>
             <field name="view_mode">tree,form</field>
-            <field name="view_id" ref="tj_processing_way_tree"/>
+            <field name="view_ids" eval="[(5,0,0),
+                          (0,0,{'view_mode':'tree','view_id': ref('tj_maintenance_workers_view_tree')}),
+                          (0,0,{'view_mode':'form', 'view_id': ref('tj_maintenance.workers_view_form')})]"/>
+        </record>
+        <record id="tj_parts_consume_action" model="ir.actions.act_window">
+            <field name="name">部件消耗</field>
+            <field name="res_model">parts.consume</field>
+            <field name="view_mode">tree,form,kanban,graph</field>
+            <field name="view_id" ref="tj_partsconsume_view_tree"/>
         </record>
 
         <record id="tj_monitoring_configuration_tree" model="ir.ui.view">
@@ -358,13 +724,46 @@
 
 
         <menuitem
-                id="menu_processing_way"
-                name="处理方式"
-                parent="maintenance.menu_maintenance_configuration"
-                action="tj_processing_way_action"
+                id="tj_menu_maintenance_request"
+                name="机台"
+                parent="maintenance.menu_equipment_form"
+                action="tj_maintenance_hr_equipment_action"
                 groups="base.group_user"
                 sequence="3"/>
-
+        <menuitem
+                id="tj_menu_equipment_maintenance"
+                name="部件消耗"
+                parent="maintenance.menu_m_reports"
+                action="tj_parts_consume_action"
+                groups="base.group_user"
+                sequence="2"/>
+        <menuitem
+                id="tj_maintenance_request_reporting"
+                name="维修申请"
+                action="maintenance.maintenance_request_action_reports"
+                parent="maintenance.menu_m_reports"
+                groups="base.group_user"
+                sequence="3"/>
+        <menuitem
+                id="maintenance.maintenance_reporting"
+                active="False"/>
+        <menuitem
+                id="maintenance.menu_maintenance_cat"
+                active="False"/>
+        <menuitem
+                id="menu_equipment_parts"
+                name="机台部件"
+                parent="maintenance.menu_maintenance_configuration"
+                action="tj_equipment_parts_action"
+                groups="base.group_user"
+                sequence="1"/>
+        <menuitem
+                id="menu_fault_type"
+                name="故障类型"
+                parent="maintenance.menu_maintenance_configuration"
+                action="tj_fault_type_action"
+                groups="base.group_user"
+                sequence="2"/>
         <menuitem
                 id="menu_repair_strategy"
                 name="维修策略"
@@ -374,8 +773,8 @@
         <menuitem
                 id="menu_regular_maintenance"
                 name="定期维护"
-                parent="tj_maintenance.menu_repair_strategy"
-                action="tj_equipment_parts_action"
+                parent="menu_repair_strategy"
+                action="tj_maintenance_periodic_maintenance_action"
                 groups="base.group_user"
                 sequence="1"/>
         <menuitem
@@ -406,5 +805,15 @@
                 action="tj_equipment_parts_action"
                 groups="base.group_user"
                 sequence="3"/>
+        <menuitem
+                id="menu_resusers_config"
+                name="人员配置"
+                parent="maintenance.menu_maintenance_configuration"
+                action="tj_maintenance_workers_action"
+                groups="base.group_user"
+                sequence="1"/>
+
+
+
     </data>
 </odoo>
